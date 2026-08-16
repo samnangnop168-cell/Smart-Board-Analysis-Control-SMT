@@ -322,7 +322,7 @@
 
     <!-- JavaScript Application Logic -->
     <script>
-             const GOOGLE_SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyWVXQSc3QdV5Eh7aGdwqgi_s_yChuEWIjVLQQC8Jbkoh3GUxOjT4AakjE3IWmFKY5zuQ/exec";
+        const GOOGLE_SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzybJQIsNH7fBr0zgCNKbHhtajpr8k_weCO1k8x2RwfqBt_ktRpNTVN3pJ9PymfatMegw/exec";
 
         let customLines = JSON.parse(localStorage.getItem('smt_custom_lines')) || [
             { name: 'Line A', brand: 'Panasonic' }, { name: 'Line B', brand: 'Panasonic' },
@@ -376,7 +376,6 @@
             fetchAllLogsFromCloud();
         };
 
-        // Fetches real-time log updates from the Google Sheet database across phones
         async function fetchAllLogsFromCloud() {
             const statusIndicator = document.getElementById('cloudSyncStatus');
             statusIndicator.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span><span>Syncing from Cloud...</span>`;
@@ -515,7 +514,6 @@
             localStorage.setItem('smt_logs', JSON.stringify(logs));
             filterLogs();
 
-            // Send to Google Sheet cloud
             const statusIndicator = document.getElementById('cloudSyncStatus');
             statusIndicator.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span><span>Syncing to Cloud...</span>`;
 
@@ -591,63 +589,145 @@
         function closeAdminModal() { document.getElementById('adminModal').classList.add('hidden'); document.getElementById('adminModal').classList.remove('flex'); }
 
         function initCharts() {
+            const chartOptions = (minVal = 95.0) => ({
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { min: minVal, max: 100.0, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } }
+                },
+                plugins: { legend: { display: false } }
+            });
+
             hourlyLineChartInstance = new Chart(document.getElementById('hourlyLineChart').getContext('2d'), {
                 type: 'line',
                 data: { labels: [], datasets: [{ label: 'Yield (%) by Hour', data: [], borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.1)', fill: true, tension: 0.2 }] },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 95.0, max: 100.0 } }, plugins: { legend: { display: false } } }
+                options: chartOptions(95.0)
             });
             dailyModelChartInstance = new Chart(document.getElementById('dailyModelChart').getContext('2d'), {
                 type: 'bar',
                 data: { labels: [], datasets: [{ label: 'Yield AOI (%) by Model', data: [], backgroundColor: '#2563eb' }] },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 95.0, max: 100.0 } }, plugins: { legend: { display: false } } }
+                options: chartOptions(95.0)
             });
             dailyLineChartInstance = new Chart(document.getElementById('dailyLineChart').getContext('2d'), {
                 type: 'bar',
                 data: { labels: [], datasets: [{ label: 'Yield AOI (%) by Line', data: [], backgroundColor: '#10b981' }] },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 95.0, max: 100.0 } }, plugins: { legend: { display: false } } }
+                options: chartOptions(95.0)
             });
             monthlyTrendChartInstance = new Chart(document.getElementById('monthlyTrendChart').getContext('2d'), {
                 type: 'line',
-                data: { labels: [], datasets: [{ label: 'Monthly Average Yield AOI (%)', data: [], borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', fill: true }] },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 95.0, max: 100.0 } }, plugins: { legend: { display: false } } }
+                data: { labels: [], datasets: [{ label: 'Monthly Average Yield AOI (%)', data: [], borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', fill: true, tension: 0.2 }] },
+                options: chartOptions(95.0)
             });
             paretoChartInstance = new Chart(document.getElementById('paretoChart').getContext('2d'), {
                 type: 'bar',
                 data: { labels: [], datasets: [{ label: 'Defect Impact', data: [], backgroundColor: '#10b981' }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { color: '#94a3b8', font: { size: 10 } } }, y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } } }, plugins: { legend: { display: false } } }
             });
             partLocationParetoChartInstance = new Chart(document.getElementById('partLocationParetoChart').getContext('2d'), {
                 type: 'bar',
                 data: { labels: [], datasets: [{ label: 'Location Impact', data: [], backgroundColor: '#6366f1' }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { color: '#94a3b8', font: { size: 10 } } }, y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } } }, plugins: { legend: { display: false } } }
             });
         }
 
         function updateCharts(activeData) {
             if (!hourlyLineChartInstance) return;
 
+            // 1. Hourly Line Chart
             let hourMap = {};
             activeData.forEach(l => {
                 let hStr = l.hour || '08:00';
                 hourMap[hStr] = hourMap[hStr] || { total: 0, defects: 0 };
-                hourMap[hStr].total += l.total;
-                hourMap[hStr].defects += l.defects;
+                hourMap[hStr].total += Number(l.total || 0);
+                hourMap[hStr].defects += Number(l.defects || 0);
             });
             let hourLabels = Object.keys(hourMap).sort();
-            let hourYields = hourLabels.map(h => (((hourMap[h].total - hourMap[h].defects) / hourMap[h].total) * 100).toFixed(2));
+            let hourYields = hourLabels.map(h => {
+                let item = hourMap[h];
+                if (item.total === 0) return 100;
+                return Number((((item.total - item.defects) / item.total) * 100).toFixed(2));
+            });
             hourlyLineChartInstance.data.labels = hourLabels;
             hourlyLineChartInstance.data.datasets[0].data = hourYields;
             hourlyLineChartInstance.update();
 
+            // 2. Daily Model Chart
             let modelMap = {};
             activeData.forEach(l => {
-                modelMap[l.model] = modelMap[l.model] || { total: 0, defects: 0 };
-                modelMap[l.model].total += l.total;
-                modelMap[l.model].defects += l.defects;
+                let mName = l.model || 'Unknown';
+                modelMap[mName] = modelMap[mName] || { total: 0, defects: 0 };
+                modelMap[mName].total += Number(l.total || 0);
+                modelMap[mName].defects += Number(l.defects || 0);
             });
-            dailyModelChartInstance.data.labels = Object.keys(modelMap);
-            dailyModelChartInstance.data.datasets[0].data = Object.keys(modelMap).map(m => (((modelMap[m].total - modelMap[m].defects) / modelMap[m].total) * 100).toFixed(2));
+            let modelLabels = Object.keys(modelMap);
+            let modelYields = modelLabels.map(m => {
+                let item = modelMap[m];
+                if (item.total === 0) return 100;
+                return Number((((item.total - item.defects) / item.total) * 100).toFixed(2));
+            });
+            dailyModelChartInstance.data.labels = modelLabels;
+            dailyModelChartInstance.data.datasets[0].data = modelYields;
             dailyModelChartInstance.update();
+
+            // 3. Daily Line Chart
+            let lineMap = {};
+            activeData.forEach(l => {
+                let lName = l.line || 'Line A';
+                lineMap[lName] = lineMap[lName] || { total: 0, defects: 0 };
+                lineMap[lName].total += Number(l.total || 0);
+                lineMap[lName].defects += Number(l.defects || 0);
+            });
+            let lineLabels = Object.keys(lineMap);
+            let lineYields = lineLabels.map(ln => {
+                let item = lineMap[ln];
+                if (item.total === 0) return 100;
+                return Number((((item.total - item.defects) / item.total) * 100).toFixed(2));
+            });
+            dailyLineChartInstance.data.labels = lineLabels;
+            dailyLineChartInstance.data.datasets[0].data = lineYields;
+            dailyLineChartInstance.update();
+
+            // 4. Monthly Trend Chart
+            let monthMap = {};
+            activeData.forEach(l => {
+                let dateStr = l.date || '2026-08-16';
+                let monthKey = dateStr.slice(0, 7); // YYYY-MM
+                monthMap[monthKey] = monthMap[monthKey] || { total: 0, defects: 0 };
+                monthMap[monthKey].total += Number(l.total || 0);
+                monthMap[monthKey].defects += Number(l.defects || 0);
+            });
+            let monthLabels = Object.keys(monthMap).sort();
+            let monthYields = monthLabels.map(mo => {
+                let item = monthMap[mo];
+                if (item.total === 0) return 100;
+                return Number((((item.total - item.defects) / item.total) * 100).toFixed(2));
+            });
+            monthlyTrendChartInstance.data.labels = monthLabels;
+            monthlyTrendChartInstance.data.datasets[0].data = monthYields;
+            monthlyTrendChartInstance.update();
+
+            // 5. Defect Pareto Chart
+            let defectMap = {};
+            activeData.forEach(l => {
+                let dName = l.defectType || 'Missing';
+                defectMap[dName] = (defectMap[dName] || 0) + Number(l.defects || 0);
+            });
+            let sortedDefects = Object.keys(defectMap).sort((a,b) => defectMap[b] - defectMap[a]);
+            paretoChartInstance.data.labels = sortedDefects;
+            paretoChartInstance.data.datasets[0].data = sortedDefects.map(d => defectMap[d]);
+            paretoChartInstance.update();
+
+            // 6. Part Location Pareto Chart
+            let locMap = {};
+            activeData.forEach(l => {
+                let loc = l.partLocation || 'N/A';
+                locMap[loc] = (locMap[loc] || 0) + Number(l.defects || 0);
+            });
+            let sortedLocs = Object.keys(locMap).sort((a,b) => locMap[b] - locMap[a]);
+            partLocationParetoChartInstance.data.labels = sortedLocs;
+            partLocationParetoChartInstance.data.datasets[0].data = sortedLocs.map(lc => locMap[lc]);
+            partLocationParetoChartInstance.update();
         }
     </script>
 </body>
