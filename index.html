@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PE Smart Board Control System - 2030 Enterprise High-Tech Suite</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #030712; color: #f8fafc; }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .holo-panel {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.6) 100%);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            box-shadow: 0 0 25px rgba(14, 165, 233, 0.08);
+        }
+        .holo-panel:hover {
+            border-color: rgba(56, 189, 248, 0.4);
+            box-shadow: 0 0 30px rgba(14, 165, 233, 0.15);
+        }
+        .typing-cursor::after {
+            content: '|';
+            animation: blink 1s infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        @keyframes moveHead {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(140px, 0); }
+            50% { transform: translate(140px, 50px); }
+            75% { transform: translate(20px, 50px); }
+            100% { transform: translate(0, 0); }
+        }
+        .animate-mounter {
+            animation: moveHead 2.5s infinite ease-in-out;
+        }
+        @keyframes pulseLaser {
+            0%, 100% { opacity: 0.3; transform: scaleY(1); }
+            50% { opacity: 0.9; transform: scaleY(1.05); }
+        }
+        .laser-scan {
+            animation: pulseLaser 1.5s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-cyan-500 selection:text-slate-950">
+
+    <!-- Top Navigation / Header -->
+    <header class="bg-slate-900/90 border-b border-cyan-500/30 sticky top-0 z-50 px-6 py-3 flex justify-between items-center shadow-xl backdrop-blur-md">
+        <div class="flex items-center space-x-3">
+            <div class="bg-gradient-to-tr from-cyan-600 to-indigo-600 p-2.5 rounded-xl text-white shadow-lg shadow-cyan-500/30">
+                <i class="fa-solid fa-microchip text-xl animate-pulse"></i>
+            </div>
+            <div>
+                <h1 class="font-orbitron font-bold text-lg tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400">SMT Smart Board Control & Solution</h1>
+                <p class="text-[11px] text-cyan-400/80 font-mono tracking-wide">HIGH-TECHNOLOGY REAL-TIME ANALYTICS 2030 &bull; CLOUD SYNC ACTIVE</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div id="cloudSyncStatus" class="text-[11px] bg-cyan-500/10 text-cyan-300 px-3 py-1 rounded-full border border-cyan-500/30 flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                <span>Neural Cloud Live</span>
+            </div>
+            <div class="text-xs bg-slate-800/80 px-3.5 py-1.5 rounded-xl border border-slate-700 text-slate-300 hidden sm:flex items-center space-x-2 shadow-inner">
+                <i class="fa-solid fa-user-shield text-cyan-400"></i> <span id="currentUsername">Admin: Samnang</span>
+            </div>
+            <button onclick="openAdminModal()" class="bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-cyan-200 px-3.5 py-1.5 rounded-xl text-xs font-semibold border border-cyan-500/30 transition shadow-lg flex items-center space-x-1.5">
+                <i class="fa-solid fa-shield-halved"></i> <span>Admin Security Panel</span>
+            </button>
+            <button onclick="handleLogout()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-3.5 py-1.5 rounded-xl text-xs font-semibold border border-rose-500/30 transition flex items-center space-x-1.5 shadow-lg">
+                <i class="fa-solid fa-power-off"></i> <span>Logout</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- High-Tech 2030 Welcome Animation Banner -->
+    <div class="max-w-7xl mx-auto w-full px-6 pt-6">
+        <div class="holo-panel rounded-2xl p-4 text-center relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-indigo-500/10 to-cyan-500/5 pointer-events-none"></div>
+            <h2 class="font-orbitron text-cyan-300 text-sm md:text-base font-bold tracking-widest uppercase">
+                <span id="typedWelcomeText" class="typing-cursor"></span>
+            </h2>
+        </div>
+    </div>
+
+    <!-- Main Workspace Container -->
+    <main class="flex-1 p-6 max-w-7xl mx-auto w-full space-y-6">
+        
+        <!-- Live High-Tech SMT Robot Mounter Process Simulation -->
+        <div class="space-y-3">
+            <h3 class="text-xs font-orbitron font-semibold text-cyan-400 uppercase tracking-wider flex items-center space-x-2">
+                <i class="fa-solid fa-microchip animate-pulse text-cyan-400"></i> <span>SMT ADVANCED ROBOT MOUNTER PROCESS LINE</span>
+            </h3>
+            <div class="holo-panel rounded-2xl p-6 relative space-y-4 border border-cyan-500/50">
+                
+                <!-- Industrial High-Tech Simulation Arena -->
+                <div class="bg-slate-950 rounded-xl p-6 h-72 relative border border-cyan-500/30 overflow-hidden flex items-center justify-center shadow-inner">
+                    <!-- Background Grid Matrix Lines -->
+                    <div class="absolute inset-0 bg-[linear-gradient(to_right,#082f4915_1px,transparent_1px),linear-gradient(to_bottom,#082f4915_1px,transparent_1px)] bg-[size:2rem_2rem]"></div>
+
+                    <!-- Dual Industrial Conveyor Rails -->
+                    <div class="absolute w-full h-2 bg-slate-800 top-[35%] flex justify-between items-center px-2 border-y border-cyan-500/20">
+                        <div class="w-1.5 h-full bg-cyan-400 animate-pulse"></div>
+                        <div class="w-1.5 h-full bg-cyan-400 animate-pulse"></div>
+                        <div class="w-1.5 h-full bg-cyan-400 animate-pulse"></div>
+                        <div class="w-1.5 h-full bg-cyan-400 animate-pulse"></div>
+                    </div>
+                    <div class="absolute w-full h-2 bg-slate-800 top-[65%] flex justify-between items-center px-2 border-y border-cyan-500/20">
+                        <div class="w-1.5 h-full bg-cyan-400 animate-pulse"></div>
+                        <div class="w-1.5 h-full bg-cyan-400 animate-pulse"></div>
+                        <div class="w-1.5 h-full bg-cyan-400 animate-pulse"></div>
+                        <div class="w-1.5 h-full bg-cyan-400 animate-pulse"></div>
+                    </div>
+
+                    <!-- High-Tech PCB Board under Process -->
+                    <div class="absolute w-56 h-28 bg-emerald-950/90 border-2 border-emerald-500/70 rounded-xl flex flex-col justify-between p-3 shadow-xl shadow-emerald-950/80 laser-scan">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[9px] font-mono text-emerald-400 font-bold bg-emerald-900/50 px-2 py-0.5 rounded border border-emerald-500/40">PCB-SMT-CORE v2</span>
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        </div>
+                        <div class="grid grid-cols-6 gap-1.5 my-auto px-2">
+                            <div class="w-4 h-3 bg-cyan-400/40 rounded-xs border border-cyan-300/60 animate-pulse"></div>
+                            <div class="w-4 h-3 bg-indigo-400/40 rounded-xs border border-indigo-300/60"></div>
+                            <div class="w-4 h-3 bg-cyan-400/40 rounded-xs border border-cyan-300/60 animate-pulse"></div>
+                            <div class="w-4 h-3 bg-emerald-400/40 rounded-xs border border-emerald-300/60"></div>
+                            <div class="w-4 h-3 bg-cyan-400/40 rounded-xs border border-cyan-300/60 animate-pulse"></div>
+                            <div class="w-4 h-3 bg-indigo-400/40 rounded-xs border border-indigo-300/60"></div>
+                            <div class="w-4 h-3 bg-emerald-400/40 rounded-xs border border-emerald-300/60"></div>
+                            <div class="w-4 h-3 bg-cyan-400/40 rounded-xs border border-cyan-300/60 animate-pulse"></div>
+                            <div class="w-4 h-3 bg-indigo-400/40 rounded-xs border border-indigo-300/60"></div>
+                            <div class="w-4 h-3 bg-cyan-400/40 rounded-xs border border-cyan-300/60"></div>
+                            <div class="w-4 h-3 bg-emerald-400/40 rounded-xs border border-emerald-300/60 animate-pulse"></div>
+                            <div class="w-4 h-3 bg-cyan-400/40 rounded-xs border border-cyan-300/60"></div>
+                        </div>
+                        <div class="text-[8px] font-mono text-emerald-300/80 flex justify-between">
+                            <span>OPTICAL ALIGNMENT: 100%</span>
+                            <span>STATUS: MOUNTING</span>
+                        </div>
+                    </div>
+
+                    <!-- High-Speed Robot Mounter Gantry Head Unit -->
+                    <div class="absolute top-6 left-12 flex flex-col items-center animate-mounter z-20 pointer-events-none">
+                        <div class="bg-gradient-to-r from-cyan-500 to-indigo-600 text-slate-950 px-3 py-1 rounded-md text-[10px] font-orbitron font-extrabold shadow-lg shadow-cyan-500/60 flex items-center space-x-1.5 border border-cyan-200">
+                            <i class="fa-solid fa-robot text-[9px]"></i> <span>AI-GANTRY-HEAD #1</span>
+                        </div>
+                        <div class="w-1.5 h-16 bg-gradient-to-b from-cyan-400 to-indigo-500 shadow-sm shadow-cyan-400"></div>
+                        <div class="w-5 h-5 bg-cyan-300 rounded-full shadow-lg shadow-cyan-300 animate-ping flex items-center justify-center">
+                            <div class="w-2 h-2 bg-white rounded-full"></div>
+                        </div>
+                    </div>
+
+                    <!-- Live Telemetry Badge Overlay -->
+                    <div class="absolute bottom-3 left-3 bg-slate-900/90 border border-cyan-500/40 px-3 py-1.5 rounded-lg flex items-center space-x-3 text-[10px] font-mono text-cyan-300 shadow-md">
+                        <div class="flex items-center space-x-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span>FEEDER FEED RATE: OPTIMAL</span>
+                        </div>
+                        <span class="text-slate-600">|</span>
+                        <div class="text-indigo-300 font-bold">AI VISION: ACTIVE</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Section 1: Production Yield Control -->
+        <div class="space-y-3">
+            <h3 class="text-xs font-orbitron font-semibold text-cyan-400 uppercase tracking-wider flex items-center space-x-2">
+                <i class="fa-solid fa-sliders"></i> <span>PRODUCTION YIELD CONTROL</span>
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="holo-panel p-4 rounded-xl flex flex-col justify-between space-y-3">
+                    <span class="text-[11px] text-slate-400 font-medium">Production Yield Control</span>
+                    <a href="aoi-report.html" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold py-2.5 rounded-lg transition shadow-lg shadow-cyan-600/30 flex items-center justify-center space-x-2 text-center">
+                        <i class="fa-solid fa-chart-line"></i> <span>AOI Report</span>
+                    </a>
+                </div>
+                <div class="holo-panel p-4 rounded-xl flex flex-col justify-between space-y-3">
+                    <span class="text-[11px] text-slate-400 font-medium">Production Yield Control</span>
+                    <button onclick="triggerReportAction('SPI Report')" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold py-2.5 rounded-lg transition shadow-lg shadow-cyan-600/30 flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-microchip"></i> <span>SPI Report</span>
+                    </button>
+                </div>
+                <div class="holo-panel p-4 rounded-xl flex flex-col justify-between space-y-3">
+                    <span class="text-[11px] text-slate-400 font-medium">Production Yield Control</span>
+                    <button onclick="triggerReportAction('Flow Report')" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold py-2.5 rounded-lg transition shadow-lg shadow-cyan-600/30 flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-arrows-split-up-and-left"></i> <span>Flow Report</span>
+                    </button>
+                </div>
+                <div class="holo-panel p-4 rounded-xl flex flex-col justify-between space-y-3">
+                    <span class="text-[11px] text-slate-400 font-medium">Mounter Performance Control</span>
+                    <a href="mounter-report.html" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold py-2.5 rounded-lg transition shadow-lg shadow-cyan-600/30 flex items-center justify-center space-x-2 text-center">
+                        <i class="fa-solid fa-robot"></i> <span>Mounter OEE & Downtime</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Cost Reduction & Output Performance -->
+        <div class="space-y-3">
+            <h3 class="text-xs font-orbitron font-semibold text-cyan-400 uppercase tracking-wider flex items-center space-x-2">
+                <i class="fa-solid fa-coins"></i> <span>COST REDUCTION & OUTPUT PERFORMANCE</span>
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="holo-panel p-4 rounded-xl flex flex-col justify-between space-y-3">
+                    <span class="text-[11px] text-slate-400 font-medium">Cost Reduction</span>
+                    <button onclick="triggerReportAction('Scrap Report')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold py-2.5 rounded-lg transition shadow-lg shadow-indigo-600/30 flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-recycle"></i> <span>Scrap Report</span>
+                    </button>
+                </div>
+                <div class="holo-panel p-4 rounded-xl flex flex-col justify-between space-y-3">
+                    <span class="text-[11px] text-slate-400 font-medium">Cost Reduction</span>
+                    <button onclick="triggerReportAction('Drop part Report')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold py-2.5 rounded-lg transition shadow-lg shadow-indigo-600/30 flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-boxes-packing"></i> <span>Drop part Report</span>
+                    </button>
+                </div>
+                <div class="holo-panel p-4 rounded-xl flex flex-col justify-between space-y-3">
+                    <span class="text-[11px] text-slate-400 font-medium">Plan Vs Result</span>
+                    <button onclick="triggerReportAction('Production Result')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold py-2.5 rounded-lg transition shadow-lg shadow-indigo-600/30 flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-chart-column"></i> <span>Production Result</span>
+                    </button>
+                </div>
+                <div class="holo-panel p-4 rounded-xl flex flex-col justify-between space-y-3">
+                    <span class="text-[11px] text-slate-400 font-medium">Downtime</span>
+                    <button onclick="triggerReportAction('Change Model')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold py-2.5 rounded-lg transition shadow-lg shadow-indigo-600/30 flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-arrows-rotate"></i> <span>Change Model</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Labor & Department Management Control -->
+        <div class="space-y-3">
+            <h3 class="text-xs font-orbitron font-semibold text-cyan-400 uppercase tracking-wider flex items-center space-x-2">
+                <i class="fa-solid fa-user-gear"></i> <span>LABOR & DEPARTMENT MANAGEMENT CONTROL</span>
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="holo-panel p-4 rounded-xl flex flex-col justify-between space-y-3">
+                    <span class="text-[11px] text-slate-400 font-medium">Labor Cost</span>
+                    <button onclick="triggerReportAction('PE-Manpower')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2.5 rounded-lg transition shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-users-gear"></i> <span>PE-Manpower</span>
+                    </button>
+                </div>
+                <div class="holo-panel p-4 rounded-xl flex flex-col justify-between space-y-3">
+                    <span class="text-[11px] text-slate-400 font-medium">Labor Cost</span>
+                    <button onclick="triggerReportAction('Maintenance')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2.5 rounded-lg transition shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-screwdriver-wrench"></i> <span>Maintenance</span>
+                    </button>
+                </div>
+                <div class="holo-panel p-4 rounded-xl flex flex-col justify-between space-y-3">
+                    <span class="text-[11px] text-slate-400 font-medium">Labor Cost</span>
+                    <button onclick="triggerReportAction('Special Equipment')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2.5 rounded-lg transition shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-satellite-dish"></i> <span>Special Equipment</span>
+                    </button>
+                </div>
+                <div class="holo-panel p-4 rounded-xl flex flex-col justify-between space-y-3">
+                    <span class="text-[11px] text-slate-400 font-medium">Dept MGR Control</span>
+                    <button onclick="triggerReportAction('Dept MGR Control')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2.5 rounded-lg transition shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-user-tie"></i> <span>Dept MGR Control</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 border-t border-slate-800 px-6 py-4 mt-auto flex flex-col sm:flex-row justify-between items-center text-xs text-slate-400">
+        <p>By: Mr. SAMNANG PE Dept MGR</p>
+        <p class="font-mono text-cyan-400">PE Smart Secure Control Suite v2030.0</p>
+    </footer>
+
+    <!-- JavaScript Typing Animation & Handlers -->
+    <script>
+        const welcomeMessage = "Welcome to PE Smart Board Control System";
+        let charIndex = 0;
+        const speed = 65;
+
+        function typeWriter() {
+            if (charIndex < welcomeMessage.length) {
+                document.getElementById("typedWelcomeText").innerHTML += welcomeMessage.charAt(charIndex);
+                charIndex++;
+                setTimeout(typeWriter, speed);
+            }
+        }
+
+        window.onload = function() {
+            typeWriter();
+        };
+
+        function triggerReportAction(actionName) {
+            alert("Initializing 2030 Neural Module: " + actionName);
+        }
+
+        function openAdminModal() {
+            alert("Opening Enterprise Admin Security Panel...");
+        }
+
+        function handleLogout() {
+            alert("Securing session and logging out...");
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMT Advanced Neural-Link Action & Line Control Center</title>
+    <!-- Include Tailwind CSS & FontAwesome for High-Tech UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cyberDark: '#0a0f1d',
+                        cyberCard: '#111827',
+                        cyberBorder: '#1f293d',
+                        cyberCyan: '#00f2fe',
+                        cyberBlue: '#4facfe',
+                        cyberGreen: '#10b981',
+                        cyberOrange: '#f59e0b',
+                        cyberRed: '#ef4444'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #070a14;
+            color: #94a3b8;
+        }
+
+        .font-mono-tech {
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        /* Holographic Glow Effects */
+        .cyber-card-glow {
+            box-shadow: 0 4px 25px -5px rgba(0, 0, 0, 0.7);
+            border: 1px solid #1e293b;
+            background: linear-gradient(135deg, rgba(17, 24, 39, 0.9) 0%, rgba(10, 15, 29, 0.95) 100%);
+            backdrop-filter: blur(10px);
+        }
+
+        .action-chip-pulse {
+            animation: pulseGlow 2s infinite;
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.8), inset 0 0 8px rgba(245, 158, 11, 0.5); }
+            100% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.5); }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            height: 10px;
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0f1d;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 242, 254, 0.2);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00f2fe;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-6">
+
+    <!-- Top Command HUD Header -->
+    <header class="max-w-[1750px] mx-auto mb-6 flex flex-col md:flex-row justify-between items-center bg-cyberCard cyber-card-glow p-4 rounded-xl">
+        <div class="flex items-center space-x-4 mb-4 md:mb-0">
+            <div class="w-12 h-12 rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-cyberDark font-bold text-2xl shadow-lg shadow-cyan-500/30">
+                <i class="fa-solid fa-microchip text-white"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold text-white tracking-wider flex items-center gap-2">
+                    SMT PRODUCTION NEURAL COMMAND <span class="text-xs px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 font-mono-tech">SYS.v5.7</span>
+                </h1>
+                <p class="text-xs text-slate-400 font-mono-tech">DOWNTIME (MIN) TELEMETRY GRAPHS, LOCALSTORAGE & FAULT MATRIX</p>
+            </div>
+        </div>
+        
+        <!-- System Status Badges & Controls -->
+        <div class="flex items-center space-x-3 text-xs font-mono-tech flex-wrap gap-y-2">
+            <button onclick="exportCSV()" class="px-3 py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30 transition-all flex items-center gap-2 font-bold cursor-pointer">
+                <i class="fa-solid fa-file-csv text-emerald-400"></i> EXPORT CSV
+            </button>
+            <button onclick="zeroOutData()" class="px-3 py-1.5 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:bg-amber-500/30 transition-all flex items-center gap-2 font-bold cursor-pointer">
+                <i class="fa-solid fa-arrow-rotate-left text-amber-400"></i> ZERO OUT (0 MINS)
+            </button>
+            <button onclick="resetData()" class="px-3 py-1.5 rounded-lg bg-red-500/20 border border-red-500/40 text-red-300 hover:bg-red-500/30 transition-all flex items-center gap-2 font-bold cursor-pointer">
+                <i class="fa-solid fa-rotate-left text-red-400"></i> RESET TO DEFAULT
+            </button>
+            <div class="px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-400 flex items-center gap-2">
+                <i class="fa-solid fa-network-wired"></i> LINE: ACTIVE
+            </div>
+            <div id="liveClock" class="px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-cyan-300">
+                00:00:00 UTC
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-[1750px] mx-auto grid grid-cols-1 xl:grid-cols-4 gap-6">
+        
+        <!-- Left Side: Neural AI Action Injector Panel -->
+        <div class="xl:col-span-1 space-y-6">
+            <div class="cyber-card-glow p-5 rounded-xl">
+                <h2 class="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-terminal text-cyan-400"></i> Action Injection Console
+                </h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-mono-tech text-slate-400 uppercase mb-1">Problem Category</label>
+                        <select id="inputCategory" class="w-full bg-cyberDark border border-cyberBorder rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-400 transition-all font-mono-tech">
+                            <option value="mounter">Mounter Trouble</option>
+                            <option value="waiting-a">Waiting Side A PCB</option>
+                            <option value="operator">Operator Shortage</option>
+                            <option value="laser">Laser Marker</option>
+                            <option value="solder">Solder Print</option>
+                            <option value="spi">SPI Error</option>
+                            <option value="pickup">Pickup Error</option>
+                            <option value="feeder">Feeder Error</option>
+                            <option value="reflow">Reflow Error</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-mono-tech text-slate-400 uppercase mb-1">Action Tier Row</label>
+                        <select id="inputActionRow" class="w-full bg-cyberDark border border-cyberBorder rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-400 transition-all font-mono-tech">
+                            <option value="0">Action 1 (Tier 1 Primary)</option>
+                            <option value="1">Action 2 (Tier 2 Secondary)</option>
+                            <option value="2">Action 3 (Tier 3 Tertiary)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-mono-tech text-slate-400 uppercase mb-1">Root Cause Diagnostics</label>
+                        <input type="text" id="inputRootCause" value="Pick up error part ABC123" class="w-full bg-cyberDark border border-cyberBorder rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-400 transition-all font-mono-tech">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-mono-tech text-slate-400 uppercase mb-1">Countermeasure Action</label>
+                        <input type="text" id="inputActionText" value="Change feeder and nozzle" class="w-full bg-cyberDark border border-cyberBorder rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-400 transition-all font-mono-tech">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-mono-tech text-cyan-400 uppercase mb-1 font-bold"><i class="fa-solid fa-stopwatch mr-1"></i> Downtime (Minutes)</label>
+                        <input type="number" id="inputDowntime" min="0" value="15" class="w-full bg-cyberDark border border-cyberCyan/50 rounded-lg px-3 py-2 text-sm text-cyan-300 font-mono-tech text-center font-bold focus:outline-none focus:border-cyan-400">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-mono-tech text-slate-400 uppercase mb-1">Production Line</label>
+                            <input type="text" id="inputLine" value="E" class="w-full bg-cyberDark border border-cyberBorder rounded-lg px-3 py-2 text-sm text-white text-center font-mono-tech focus:outline-none focus:border-cyan-400">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-mono-tech text-slate-400 uppercase mb-1">Day Index (1-31)</label>
+                            <input type="number" id="inputDay" min="1" max="31" value="1" class="w-full bg-cyberDark border border-cyberBorder rounded-lg px-3 py-2 text-sm text-white text-center font-mono-tech focus:outline-none focus:border-cyan-400">
+                        </div>
+                    </div>
+
+                    <button onclick="injectAction()" class="w-full mt-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-cyberDark font-bold py-2.5 px-4 rounded-lg shadow-lg shadow-cyan-500/20 transition-all transform active:scale-[0.98] font-mono-tech tracking-wider uppercase text-sm cursor-pointer">
+                        <i class="fa-solid fa-bolt mr-2"></i> Deploy & Remember
+                    </button>
+                </div>
+            </div>
+
+            <!-- Diagnostics Summary Card -->
+            <div class="cyber-card-glow p-5 rounded-xl font-mono-tech text-xs space-y-3">
+                <div class="text-white font-bold uppercase tracking-wider flex items-center gap-2 border-b border-cyberBorder pb-2">
+                    <i class="fa-solid fa-database text-emerald-400"></i> Memory Status
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Storage Engine:</span>
+                    <span class="text-cyan-400">LocalStorage Active</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Metric Flow:</span>
+                    <span class="text-amber-400">Downtime (Minutes)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Main Dashboard Area -->
+        <div class="xl:col-span-3 space-y-6">
+            
+            <!-- Category Navigation Sub-Grid -->
+            <div class="cyber-card-glow p-4 rounded-xl">
+                <div class="text-xs font-mono-tech text-slate-400 uppercase mb-3 flex items-center justify-between">
+                    <span><i class="fa-solid fa-layer-group text-cyan-400 mr-2"></i> Select SMT Fault Module</span>
+                    <span class="text-cyan-400">9 Active Modules</span>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2" id="categoryMenu">
+                    <button class="category-btn active px-3 py-2 rounded-lg bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 text-xs font-semibold transition-all hover:bg-cyan-500/30 text-center truncate cursor-pointer" data-target="panel-mounter">Mounter Trouble</button>
+                    <button class="category-btn px-3 py-2 rounded-lg bg-cyberDark border border-cyberBorder text-slate-300 text-xs font-semibold transition-all hover:bg-slate-800 text-center truncate cursor-pointer" data-target="panel-waiting-a">Waiting Side A</button>
+                    <button class="category-btn px-3 py-2 rounded-lg bg-cyberDark border border-cyberBorder text-slate-300 text-xs font-semibold transition-all hover:bg-slate-800 text-center truncate cursor-pointer" data-target="panel-operator">Operator Short</button>
+                    <button class="category-btn px-3 py-2 rounded-lg bg-cyberDark border border-cyberBorder text-slate-300 text-xs font-semibold transition-all hover:bg-slate-800 text-center truncate cursor-pointer" data-target="panel-laser">Laser Marker</button>
+                    <button class="category-btn px-3 py-2 rounded-lg bg-cyberDark border border-cyberBorder text-slate-300 text-xs font-semibold transition-all hover:bg-slate-800 text-center truncate cursor-pointer" data-target="panel-solder">Solder Print</button>
+                    <button class="category-btn px-3 py-2 rounded-lg bg-cyberDark border border-cyberBorder text-slate-300 text-xs font-semibold transition-all hover:bg-slate-800 text-center truncate cursor-pointer" data-target="panel-spi">SPI Error</button>
+                    <button class="category-btn px-3 py-2 rounded-lg bg-cyberDark border border-cyberBorder text-slate-300 text-xs font-semibold transition-all hover:bg-slate-800 text-center truncate cursor-pointer" data-target="panel-pickup">Pickup Error</button>
+                    <button class="category-btn px-3 py-2 rounded-lg bg-cyberDark border border-cyberBorder text-slate-300 text-xs font-semibold transition-all hover:bg-slate-800 text-center truncate cursor-pointer" data-target="panel-feeder">Feeder Error</button>
+                    <button class="category-btn px-3 py-2 rounded-lg bg-cyberDark border border-cyberBorder text-slate-300 text-xs font-semibold transition-all hover:bg-slate-800 text-center truncate cursor-pointer" data-target="panel-reflow">Reflow Error</button>
+                </div>
+            </div>
+
+            <!-- Active Panel Display Area -->
+            <div id="panelsContainer" class="space-y-6">
+                
+                <!-- Panel: Mounter Trouble -->
+                <div id="panel-mounter" class="dashboard-panel cyber-card-glow p-5 rounded-xl space-y-6">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-cyberBorder pb-4 gap-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-microchip text-cyan-400"></i> Mounter Trouble - Downtime Telemetry & Action Matrix
+                            </h2>
+                            <p class="text-xs text-slate-400 font-mono-tech mt-1">Real-time daily downtime (minutes) tracking & wide columns for clear text viewing</p>
+                        </div>
+                        <div class="flex items-center gap-2 font-mono-tech text-xs flex-wrap">
+                            <div class="flex bg-cyberDark p-1 rounded-lg border border-cyberBorder">
+                                <button onclick="setGraphType('mounter', 'line')" class="px-2.5 py-1 rounded bg-cyan-500/20 text-cyan-300 text-xs transition-all chart-type-btn-mounter-line font-bold cursor-pointer">Line</button>
+                                <button onclick="setGraphType('mounter', 'bar')" class="px-2.5 py-1 rounded text-slate-400 text-xs transition-all chart-type-btn-mounter-bar cursor-pointer">Bar</button>
+                            </div>
+                            <span class="px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400">LINE E</span>
+                            <span class="px-2.5 py-1 rounded bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">31-DAY CYCLE</span>
+                        </div>
+                    </div>
+
+                    <!-- Chart Telemetry View -->
+                    <div class="bg-cyberDark/60 p-4 rounded-xl border border-cyberBorder relative h-64">
+                        <canvas class="trendChart"></canvas>
+                    </div>
+
+                    <!-- Table View -->
+                    <div>
+                        <h3 class="text-xs font-mono-tech text-slate-400 uppercase mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-table-cells text-cyan-400"></i> Action Schedule & Gantt Execution Grid
+                        </h3>
+                        <div class="overflow-x-auto rounded-xl border border-cyberBorder">
+                            <table class="w-full text-center border-collapse whitespace-nowrap font-mono-tech text-xs table-fixed" data-cat="mounter">
+                                <thead>
+                                    <tr class="bg-cyberDark text-slate-300 border-b border-cyberBorder">
+                                        <th class="p-3 text-left w-[130px]">Log Item / Day</th>
+                                        <th class="p-3 text-left w-[240px]">Root Cause</th>
+                                        <th class="p-3 w-[55px]">Line</th>
+                                        <script>
+                                            for(let d=1; d<=31; d++) document.write(`<th class="p-2 border-l border-cyberBorder/50 w-[75px]">${d}</th>`);
+                                        </script>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-cyberBorder/50 bg-cyberCard/40">
+                                    <tr class="hover:bg-slate-800/40 transition-colors">
+                                        <td class="p-3 text-left font-bold text-cyan-400 truncate">Action 1</td>
+                                        <td class="p-3 text-left text-slate-400 italic truncate" data-default="No anomaly assigned">No anomaly assigned</td>
+                                        <td class="p-3 text-center text-slate-300 font-bold">E</td>
+                                        <script>
+                                            for(let d=1; d<=31; d++) document.write(`<td class="p-2 border-l border-cyberBorder/50 text-slate-600 action-cell-target align-top">·</td>`);
+                                        </script>
+                                    </tr>
+                                    <tr class="hover:bg-slate-800/40 transition-colors">
+                                        <td class="p-3 text-left font-bold text-cyan-400 truncate">Action 2</td>
+                                        <td class="p-3 text-left text-slate-400 italic truncate" data-default="No anomaly assigned">No anomaly assigned</td>
+                                        <td class="p-3 text-center text-slate-300 font-bold">E</td>
+                                        <script>
+                                            for(let d=1; d<=31; d++) document.write(`<td class="p-2 border-l border-cyberBorder/50 text-slate-600 action-cell-target align-top">·</td>`);
+                                        </script>
+                                    </tr>
+                                    <tr class="hover:bg-slate-800/40 transition-colors">
+                                        <td class="p-3 text-left font-bold text-cyan-400 truncate">Action 3</td>
+                                        <td class="p-3 text-left text-slate-400 italic truncate" data-default="No anomaly assigned">No anomaly assigned</td>
+                                        <td class="p-3 text-center text-slate-300 font-bold">E</td>
+                                        <script>
+                                            for(let d=1; d<=31; d++) document.write(`<td class="p-2 border-l border-cyberBorder/50 text-slate-600 action-cell-target align-top">·</td>`);
+                                        </script>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Script Engine with LocalStorage Persistence -->
+    <script>
+        // Live Clock Generator
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('liveClock').textContent = now.toISOString().slice(11, 19) + ' UTC';
+        }, 1000);
+
+        // Default Downtime Data Stores (Minutes) - set to all 0s for blank slate or sample data
+        const defaultCategoryDataStore = {
+            'mounter': Array(31).fill(0),
+            'waiting-a': Array(31).fill(0),
+            'operator': Array(31).fill(0),
+            'laser': Array(31).fill(0),
+            'solder': Array(31).fill(0),
+            'spi': Array(31).fill(0),
+            'pickup': Array(31).fill(0),
+            'feeder': Array(31).fill(0),
+            'reflow': Array(31).fill(0)
+        };
+
+        let categoryDataStore = JSON.parse(localStorage.getItem('smt_categoryDataStore')) || JSON.parse(JSON.stringify(defaultCategoryDataStore));
+        let activeCharts = {};
+        const daysLabels = Array.from({length: 31}, (_, i) => i + 1);
+
+        // Dynamically build remaining category panels
+        const allCategories = [
+            {id: 'waiting-a', title: 'Waiting Side A PCB', line: 'A'},
+            {id: 'operator', title: 'Operator Shortage', line: 'ALL'},
+            {id: 'laser', title: 'Laser Marker', line: 'C'},
+            {id: 'solder', title: 'Solder Print', line: 'B'},
+            {id: 'spi', title: 'SPI Error', line: 'D'},
+            {id: 'pickup', title: 'Pickup Error', line: 'E'},
+            {id: 'feeder', title: 'Feeder Error', line: 'F'},
+            {id: 'reflow', title: 'Reflow Error', line: 'D'}
+        ];
+
+        const container = document.getElementById('panelsContainer');
+        allCategories.forEach(cat => {
+            let daysTH = '';
+            let daysTD = '';
+            for(let d=1; d<=31; d++) {
+                daysTH += `<th class="p-2 border-l border-cyberBorder/50 w-[75px]">${d}</th>`;
+                daysTD += `<td class="p-2 border-l border-cyberBorder/50 text-slate-600 action-cell-target align-top">·</td>`;
+            }
+
+            const div = document.createElement('div');
+            div.id = `panel-${cat.id}`;
+            div.className = 'dashboard-panel cyber-card-glow p-5 rounded-xl space-y-6 hidden';
+            div.innerHTML = `
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-cyberBorder pb-4 gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-microchip text-cyan-400"></i> ${cat.title} - Downtime Telemetry & Action Matrix
+                        </h2>
+                        <p class="text-xs text-slate-400 font-mono-tech mt-1">Real-time daily downtime (minutes) tracking & wide columns for clear text viewing</p>
+                    </div>
+                    <div class="flex items-center gap-2 font-mono-tech text-xs flex-wrap">
+                        <div class="flex bg-cyberDark p-1 rounded-lg border border-cyberBorder">
+                            <button onclick="setGraphType('${cat.id}', 'line')" class="px-2.5 py-1 rounded bg-cyan-500/20 text-cyan-300 text-xs transition-all chart-type-btn-${cat.id}-line font-bold cursor-pointer">Line</button>
+                            <button onclick="setGraphType('${cat.id}', 'bar')" class="px-2.5 py-1 rounded text-slate-400 text-xs transition-all chart-type-btn-${cat.id}-bar cursor-pointer">Bar</button>
+                        </div>
+                        <span class="px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400">LINE ${cat.line}</span>
+                        <span class="px-2.5 py-1 rounded bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">31-DAY CYCLE</span>
+                    </div>
+                </div>
+                <div class="bg-cyberDark/60 p-4 rounded-xl border border-cyberBorder relative h-64">
+                    <canvas class="trendChart"></canvas>
+                </div>
+                <div>
+                    <h3 class="text-xs font-mono-tech text-slate-400 uppercase mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-table-cells text-cyan-400"></i> Action Schedule & Gantt Execution Grid
+                    </h3>
+                    <div class="overflow-x-auto rounded-xl border border-cyberBorder">
+                        <table class="w-full text-center border-collapse whitespace-nowrap font-mono-tech text-xs table-fixed" data-cat="${cat.id}">
+                            <thead>
+                                <tr class="bg-cyberDark text-slate-300 border-b border-cyberBorder">
+                                    <th class="p-3 text-left w-[130px]">Log Item / Day</th>
+                                    <th class="p-3 text-left w-[240px]">Root Cause</th>
+                                    <th class="p-3 w-[55px]">Line</th>
+                                    ${daysTH}
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-cyberBorder/50 bg-cyberCard/40">
+                                <tr>
+                                    <td class="p-3 text-left font-bold text-cyan-400 truncate">Action 1</td>
+                                    <td class="p-3 text-left text-slate-400 italic truncate" data-default="No anomaly assigned">No anomaly assigned</td>
+                                    <td class="p-3 text-center text-slate-300 font-bold">${cat.line}</td>
+                                    ${daysTD}
+                                </tr>
+                                <tr>
+                                    <td class="p-3 text-left font-bold text-cyan-400 truncate">Action 2</td>
+                                    <td class="p-3 text-left text-slate-400 italic truncate" data-default="No anomaly assigned">No anomaly assigned</td>
+                                    <td class="p-3 text-center text-slate-300 font-bold">${cat.line}</td>
+                                    ${daysTD}
+                                </tr>
+                                <tr>
+                                    <td class="p-3 text-left font-bold text-cyan-400 truncate">Action 3</td>
+                                    <td class="p-3 text-left text-slate-400 italic truncate" data-default="No anomaly assigned">No anomaly assigned</td>
+                                    <td class="p-3 text-center text-slate-300 font-bold">${cat.line}</td>
+                                    ${daysTD}
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+
+        // Initialize All Charts
+        function initAllCharts() {
+            document.querySelectorAll('.dashboard-panel').forEach(panel => {
+                const panelId = panel.id.replace('panel-', '');
+                const canvas = panel.querySelector('.trendChart');
+                if (canvas && !activeCharts[panelId]) {
+                    const ctx = canvas.getContext('2d');
+                    let gradient = ctx.createLinearGradient(0, 0, 0, 250);
+                    gradient.addColorStop(0, 'rgba(0, 242, 254, 0.3)');
+                    gradient.addColorStop(1, 'rgba(0, 242, 254, 0.0)');
+
+                    activeCharts[panelId] = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: daysLabels,
+                            datasets: [{
+                                label: 'Daily Downtime (Minutes)',
+                                data: categoryDataStore[panelId] || Array(31).fill(0),
+                                borderColor: '#00f2fe',
+                                backgroundColor: gradient,
+                                borderWidth: 2.5,
+                                pointBackgroundColor: '#00f2fe',
+                                pointBorderColor: '#ffffff',
+                                pointRadius: 3,
+                                pointHoverRadius: 6,
+                                fill: true,
+                                tension: 0.3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    suggestedMax: 60,
+                                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                                    ticks: { 
+                                        color: '#64748b', 
+                                        font: { family: 'Share Tech Mono' },
+                                        callback: function(value) { return value + 'm'; }
+                                    }
+                                },
+                                x: {
+                                    grid: { display: false },
+                                    ticks: { color: '#64748b', font: { family: 'Share Tech Mono' } }
+                                }
+                            },
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return ' Downtime: ' + context.parsed.y + ' minutes';
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        initAllCharts();
+
+        // Load persisted table contents from LocalStorage on startup
+        function loadSavedTableData() {
+            const savedTableState = JSON.parse(localStorage.getItem('smt_tableState'));
+            if (!savedTableState) return;
+
+            for (const catKey in savedTableState) {
+                const panel = document.getElementById(`panel-${catKey}`);
+                if (!panel) continue;
+                const rowsData = savedTableState[catKey];
+                const rows = panel.querySelectorAll('tbody tr');
+
+                rowsData.forEach((rData, rIdx) => {
+                    if (rIdx >= rows.length) return;
+                    const targetRow = rows[rIdx];
+
+                    // Restore root cause & line
+                    if (rData.rootCause && rData.rootCause !== "No anomaly assigned") {
+                        targetRow.cells[1].textContent = rData.rootCause;
+                        targetRow.cells[1].title = rData.rootCause;
+                        targetRow.cells[1].className = "p-3 text-left text-slate-200 font-semibold truncate";
+                    }
+                    if (rData.line) {
+                        targetRow.cells[2].textContent = rData.line;
+                    }
+
+                    // Restore day chips
+                    if (rData.days) {
+                        for (let d = 1; d <= 31; d++) {
+                            const chipHTML = rData.days[d];
+                            if (chipHTML) {
+                                const cell = targetRow.cells[d + 2];
+                                cell.innerHTML = chipHTML;
+                                cell.className = "p-1 border-l border-cyberBorder/50 action-cell-target align-top space-y-1";
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        loadSavedTableData();
+
+        // Save current table contents to LocalStorage
+        function saveTableDataToStorage() {
+            const tableState = {};
+            const panels = document.querySelectorAll('.dashboard-panel');
+
+            panels.forEach(panel => {
+                const catKey = panel.id.replace('panel-', '');
+                const rows = panel.querySelectorAll('tbody tr');
+                let rowsArr = [];
+
+                rows.forEach(row => {
+                    const rootCause = row.cells[1].textContent.trim();
+                    const line = row.cells[2].textContent.trim();
+                    let daysObj = {};
+
+                    for (let d = 1; d <= 31; d++) {
+                        const cell = row.cells[d + 2];
+                        if (cell && !cell.innerHTML.includes('·') && cell.innerHTML.trim() !== '') {
+                            daysObj[d] = cell.innerHTML;
+                        }
+                    }
+                    rowsArr.push({ rootCause, line, days: daysObj });
+                });
+                tableState[catKey] = rowsArr;
+            });
+
+            localStorage.setItem('smt_tableState', JSON.stringify(tableState));
+            localStorage.setItem('smt_categoryDataStore', JSON.stringify(categoryDataStore));
+        }
+
+        // Switch Graph Type
+        function setGraphType(panelId, type) {
+            const chart = activeCharts[panelId];
+            if (!chart) return;
+            
+            chart.config.type = type;
+            if (type === 'bar') {
+                chart.data.datasets[0].backgroundColor = '#00f2fe';
+            } else {
+                const ctx = chart.ctx;
+                let gradient = ctx.createLinearGradient(0, 0, 0, 250);
+                gradient.addColorStop(0, 'rgba(0, 242, 254, 0.3)');
+                gradient.addColorStop(1, 'rgba(0, 242, 254, 0.0)');
+                chart.data.datasets[0].backgroundColor = gradient;
+            }
+            chart.update();
+
+            const lineBtn = document.querySelector(`.chart-type-btn-${panelId}-line`);
+            const barBtn = document.querySelector(`.chart-type-btn-${panelId}-bar`);
+            if (lineBtn && barBtn) {
+                if (type === 'line') {
+                    lineBtn.className = "px-2.5 py-1 rounded bg-cyan-500/20 text-cyan-300 text-xs transition-all font-bold cursor-pointer";
+                    barBtn.className = "px-2.5 py-1 rounded text-slate-400 text-xs transition-all cursor-pointer";
+                } else {
+                    barBtn.className = "px-2.5 py-1 rounded bg-cyan-500/20 text-cyan-300 text-xs transition-all font-bold cursor-pointer";
+                    lineBtn.className = "px-2.5 py-1 rounded text-slate-400 text-xs transition-all cursor-pointer";
+                }
+            }
+        }
+
+        // Tab Switching Logic
+        const menuButtons = document.querySelectorAll('#categoryMenu button');
+        menuButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                menuButtons.forEach(b => {
+                    b.classList.remove('active', 'bg-cyan-500/20', 'border-cyan-500/50', 'text-cyan-300');
+                    b.classList.add('bg-cyberDark', 'border-cyberBorder', 'text-slate-300');
+                });
+                btn.classList.add('active', 'bg-cyan-500/20', 'border-cyan-500/50', 'text-cyan-300');
+                btn.classList.remove('bg-cyberDark', 'text-slate-300');
+
+                const targetId = btn.getAttribute('data-target');
+                document.querySelectorAll('.dashboard-panel').forEach(p => p.classList.add('hidden'));
+                const activePanel = document.getElementById(targetId);
+                activePanel.classList.remove('hidden');
+
+                const chartKey = targetId.replace('panel-', '');
+                if (activeCharts[chartKey]) {
+                    activeCharts[chartKey].update();
+                }
+            });
+        });
+
+        // Action Injection Controller Function with Downtime Integration & Persistence
+        function injectAction() {
+            const cat = document.getElementById('inputCategory').value;
+            const rowIndex = parseInt(document.getElementById('inputActionRow').value);
+            const rootCause = document.getElementById('inputRootCause').value;
+            const actionText = document.getElementById('inputActionText').value;
+            const downtime = parseInt(document.getElementById('inputDowntime').value) || 0;
+            const line = document.getElementById('inputLine').value;
+            const day = parseInt(document.getElementById('inputDay').value);
+
+            if(!rootCause || !actionText || isNaN(day)) {
+                alert('Please fill in all telemetry action fields correctly.');
+                return;
+            }
+
+            const panel = document.getElementById(`panel-${cat}`);
+            if(!panel) return;
+
+            menuButtons.forEach(b => {
+                if(b.getAttribute('data-target') === `panel-${cat}`) b.click();
+            });
+
+            const rows = panel.querySelectorAll('tbody tr');
+            if(rowIndex >= rows.length) return;
+            const targetRow = rows[rowIndex];
+
+            targetRow.cells[1].textContent = rootCause;
+            targetRow.cells[1].title = rootCause;
+            targetRow.cells[1].className = "p-3 text-left text-slate-200 font-semibold truncate";
+            targetRow.cells[2].textContent = line;
+
+            const targetCellIndex = day + 2;
+            if(targetCellIndex < targetRow.cells.length) {
+                const cell = targetRow.cells[targetCellIndex];
+                
+                if (cell.innerHTML.includes('·') || cell.innerHTML.trim() === '') {
+                    cell.innerHTML = '';
+                    cell.className = "p-1 border-l border-cyberBorder/50 action-cell-target align-top space-y-1";
+                }
+
+                const newChip = document.createElement('div');
+                newChip.className = "action-chip-pulse bg-amber-500 text-white p-2 rounded text-left font-bold text-[11px] leading-snug shadow-md whitespace-normal break-words mt-1";
+                newChip.setAttribute('title', `Action: ${actionText} | Downtime: ${downtime}m`);
+                newChip.textContent = `Action: ${actionText} [${downtime}m]`;
+                
+                cell.appendChild(newChip);
+            }
+
+            if(categoryDataStore[cat]) {
+                categoryDataStore[cat][day - 1] += downtime;
+                if(activeCharts[cat]) {
+                    activeCharts[cat].data.datasets[0].data = categoryDataStore[cat];
+                    activeCharts[cat].update();
+                }
+            }
+
+            // Save state to LocalStorage so it remembers everything
+            saveTableDataToStorage();
+
+            alert(`[SUCCESS & REMEMBERED] Action injected & +${downtime}m downtime added for Category: ${cat.toUpperCase()} on Day ${day}!`);
+        }
+
+        // Zero Out Data Function (Sets all downtime to 0 and clears action logs)
+        function zeroOutData() {
+            if (confirm("Are you sure you want to zero out all downtime values and clear all table logs to 0?")) {
+                for (let catKey in categoryDataStore) {
+                    categoryDataStore[catKey] = Array(31).fill(0);
+                    if (activeCharts[catKey]) {
+                        activeCharts[catKey].data.datasets[0].data = categoryDataStore[catKey];
+                        activeCharts[catKey].update();
+                    }
+                }
+                localStorage.removeItem('smt_tableState');
+                localStorage.setItem('smt_categoryDataStore', JSON.stringify(categoryDataStore));
+                
+                document.querySelectorAll('.dashboard-panel').forEach(panel => {
+                    const rows = panel.querySelectorAll('tbody tr');
+                    rows.forEach(row => {
+                        row.cells[1].textContent = "No anomaly assigned";
+                        row.cells[1].className = "p-3 text-left text-slate-400 italic truncate";
+                        for (let d = 1; d <= 31; d++) {
+                            const cell = row.cells[d + 2];
+                            cell.innerHTML = '·';
+                            cell.className = "p-2 border-l border-cyberBorder/50 text-slate-600 action-cell-target align-top";
+                        }
+                    });
+                });
+                alert("All downtime graphs and tables have been zeroed out (0 mins).");
+            }
+        }
+
+        // Reset Data Function
+        function resetData() {
+            if (confirm("Are you sure you want to reset all downtime telemetry data and cleared tables back to default sample state?")) {
+                localStorage.removeItem('smt_tableState');
+                localStorage.removeItem('smt_categoryDataStore');
+                location.reload();
+            }
+        }
+
+        // CSV Export Feature
+        function exportCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Category,Action_Row,Root_Cause,Line," + daysLabels.map(d => `Day_${d}_Downtime(m)`).join(",") + "\n";
+
+            const allKeys = Object.keys(categoryDataStore);
+            allKeys.forEach(catKey => {
+                const panel = document.getElementById(`panel-${catKey}`);
+                if (!panel) return;
+                const rows = panel.querySelectorAll('tbody tr');
+                
+                rows.forEach((row, rIdx) => {
+                    const rootCause = row.cells[1].textContent.trim();
+                    const line = row.cells[2].textContent.trim();
+                    let dayValues = [];
+                    
+                    for (let d = 1; d <= 31; d++) {
+                        const cell = row.cells[d + 2];
+                        let val = "";
+                        if (cell && !cell.innerHTML.includes('·')) {
+                            const chips = cell.querySelectorAll('div');
+                            let chipTexts = [];
+                            chips.forEach(c => chipTexts.push(c.textContent.trim().replace(/,/g, ' ')));
+                            val = chipTexts.join(" | ");
+                        }
+                        dayValues.push(`"${val}"`);
+                    }
+
+                    csvContent += `${catKey},Action_${rIdx+1},"${rootCause}",${line},` + dayValues.join(",") + "\n";
+                });
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "SMT_Production_Downtime_Matrix_Export.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
